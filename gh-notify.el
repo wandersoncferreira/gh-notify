@@ -1390,6 +1390,8 @@ If there is a region, only unmark notifications in region."
 (defun gh-notify-mark-notification-unread ()
   "Mark notification as unread in Forge and GH-NOTIFY buffers."
   (interactive)
+  (cl-assert (or (eq major-mode 'forge-topic-mode)
+                 (eq major-mode 'gh-notify-mode)) t)
   (let* ((current-notification (cond
                                 ((eq major-mode 'forge-topic-mode)
                                  gh-notify--last-visited-notification)
