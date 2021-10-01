@@ -1416,14 +1416,15 @@ If there is a region, only unmark notifications in region."
         (+magit/quit))
       (gh-notify-retrieve-notifications))))
 
-(defun gh-notify-delete-notification (&optional notification)
+(defun gh-notify-delete-notification (&optional notification prevent-redraw)
   "Delete notification from local database."
   (interactive)
   (cl-assert (eq major-mode 'gh-notify-mode) t)
   (let* ((current-notification (or notification (gh-notify-current-notification)))
          (obj (gh-notify-notification-forge-obj current-notification)))
     (gh-notify--delete-forge-obj obj)
-    (gh-notify-retrieve-notifications)))
+    (when (not prevent-redraw)
+      (gh-notify-retrieve-notifications))))
 
 (defun gh-notify-delete-marked-notifications ()
   "Delete all marked notifications from Forge database."
@@ -1432,7 +1433,8 @@ If there is a region, only unmark notifications in region."
   (gh-notify-do-visible-notifications
    (lambda (notification)
      (when (gh-notify-notification-is-marked notification)
-       (gh-notify-delete-notification notification)))))
+       (gh-notify-delete-notification notification t))))
+  (gh-notify-retrieve-notifications))
 
 (defun gh-notify-visit-notification (P)
   "Attempt to visit notification at point in some sane way."
