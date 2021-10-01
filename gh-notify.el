@@ -538,6 +538,8 @@ Otherwise, a new string is generated and returned by calling
     ;; type limit control
     (define-key prefix-map (kbd "p")  'gh-notify-limit-pr) ; resets type limit on prefix
     (define-key prefix-map (kbd "i")  'gh-notify-limit-issue) ; resets type limit on prefix
+    ;; delete notification
+    (define-key prefix-map (kbd "k")  'gh-notify-delete-notification)
     ;; reason limit control
     (define-key prefix-map (kbd "*")  'gh-notify-limit-marked)
     (define-key prefix-map (kbd "a")  'gh-notify-limit-assign)
@@ -663,6 +665,10 @@ Type \\[gh-notify-limit-none] to remove any active reason limit.
 Type \\[gh-notify-limit-marked] to only show marked notifications.
 
 Type \\[gh-notify-limit-none] to remove the current limit and show all notifications.
+
+Deleting:
+
+Type \\[gh-notify-delete-notification] to delete the notification from Forge database
 
 Marking:
 
@@ -1020,6 +1026,11 @@ The alist contains (repo-id . notifications) pairs."
   ;; replace the updated object ...
   (emacsql-with-transaction (forge-db)
     (closql-insert (forge-db) obj t)))
+
+(defun gh-notify--delete-forge-obj (obj)
+  "Delete a forge db object with OBJ."
+  (emacsql-with-transaction (forge-db)
+    (closql-delete obj)))
 
 (defun gh-notify--get-topic-state (type repo topic)
   "Get current topic state from forge db."
@@ -1404,6 +1415,15 @@ If there is a region, only unmark notifications in region."
       (when (eq major-mode 'forge-topic-mode)
         (+magit/quit))
       (gh-notify-retrieve-notifications))))
+
+(defun gh-notify-delete-notification ()
+  "Delete notification from local database."
+  (interactive)
+  (cl-assert (eq major-mode 'gh-notify-mode) t)
+  (let* ((current-notification (gh-notify-current-notification))
+         (obj (gh-notify-notification-forge-obj current-notification)))
+    (gh-notify--delete-forge-obj obj)
+    (gh-notify-retrieve-notifications)))
 
 (defun gh-notify-visit-notification (P)
   "Attempt to visit notification at point in some sane way."
