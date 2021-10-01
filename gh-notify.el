@@ -1167,6 +1167,13 @@ The alist contains (repo-id . notifications) pairs."
     (setq-local gh-notify--unread-limit :unread))
   (gh-notify--filter-notifications))
 
+(defun gh-notify-limit-unread-none ()
+  "Show all notifications."
+  (interactive)
+  (cl-assert (eq major-mode 'gh-notify-mode) t)
+  (setq-local gh-notify--unread-limit nil)
+  (gh-notify--filter-notifications))
+
 (defun gh-notify-limit-assign ()
   "Only show notifications with reason: assign."
   (interactive)
