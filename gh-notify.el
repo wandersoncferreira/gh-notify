@@ -1385,6 +1385,24 @@ If there is a region, only unmark notifications in region."
       (when gh-notify-redraw-on-visit
         (gh-notify-retrieve-notifications)))))
 
+(setq gh-notify--last-visited-notification nil)
+
+(defun gh-notify-mark-notification-unread ()
+  "Mark notification as unread in Forge and GH-NOTIFY buffers."
+  (interactive)
+  (let* ((current-notification (cond
+                                ((eq major-mode 'forge-topic-mode)
+                                 gh-notify--last-visited-notification)
+                                ((eq major-mode 'gh-notify-mode)
+                                 (gh-notify-current-notification))))
+         (obj (gh-notify-notification-forge-obj current-notification)))
+    (oset obj unread-p t)
+    (gh-notify--insert-forge-obj obj)
+    (when gh-notify-redraw-on-visit
+      (when (eq major-mode 'forge-topic-mode)
+        (+magit/quit))
+      (gh-notify-retrieve-notifications))))
+
 (defun gh-notify-visit-notification (P)
   "Attempt to visit notification at point in some sane way."
   (interactive "P")
@@ -1430,6 +1448,7 @@ If there is a region, only unmark notifications in region."
             ('issue
              ;;(message "handling an issue ...")
              (gh-notify-mark-notification-read current-notification)
+             (setq gh-notify--last-visited-notification current-notification)
              (with-demoted-errors "Warning: %S"
                (with-temp-buffer
                  (forge-visit (forge-get-issue repo topic))
@@ -1437,6 +1456,7 @@ If there is a region, only unmark notifications in region."
             ('pullreq
              ;;(message "handling a pull request ...")
              (gh-notify-mark-notification-read current-notification)
+             (setq gh-notify--last-visited-notification current-notification)
              (with-demoted-errors "Warning: %S"
                (with-temp-buffer
                  (forge-visit (forge-get-pullreq repo topic))
